@@ -115,8 +115,22 @@
 }
 
 - (BOOL)isFLKUniversalLink:(NSURL *)url {
+    // 不拦截支付宝回调
+    if ([url.host isEqualToString:@"safepay"]) {
+        return NO;
+    }
+    // 不拦截微信 qq 回调
+    NSArray<NSString *> *whiteList = @[@"/wx", @"/qq"];
     NSURL *universalLink = [NSURL URLWithString:LINK_KIT_UNIVERSAL_LINK];
     if ([url.absoluteString hasPrefix:universalLink.absoluteString]) {
+        __block BOOL inWhiteList = NO;
+        [whiteList enumerateObjectsUsingBlock:^( NSString* _Nonnull  obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            if ([url.path hasPrefix:obj]) {
+                *stop = YES;
+                inWhiteList = YES;
+            }
+        }];
+        if (inWhiteList) return NO;
         return YES;
     }
     return NO;
